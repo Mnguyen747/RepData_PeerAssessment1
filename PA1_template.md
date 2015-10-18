@@ -29,7 +29,7 @@ library(dplyr)
 ```r
 dta <- read.csv("activity.csv")
 dta$date <- as.character(dta$date)
-dta$date <- as.Date(dta$date, "%m/%d/%Y")
+dta$date <- as.Date(dta$date, "%Y-%m-%d")
 dta <- tbl_df(dta)
 ```
 

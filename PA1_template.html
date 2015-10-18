@@ -222,7 +222,7 @@ hr {
 
 <pre><code class="r">dta &lt;- read.csv(&quot;activity.csv&quot;)
 dta$date &lt;- as.character(dta$date)
-dta$date &lt;- as.Date(dta$date, &quot;%m/%d/%Y&quot;)
+dta$date &lt;- as.Date(dta$date, &quot;%Y-%m-%d&quot;)
 dta &lt;- tbl_df(dta)
 </code></pre>
 
