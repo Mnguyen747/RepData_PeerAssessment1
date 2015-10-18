@@ -1,25 +1,121 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Peer_Assessment_1"
+author: "Jimmy Nguyen"
+date: "October 18, 2015"
+output: html_document
 ---
 
+**Please Note: You will need the dplyr package to run my code. Thank you!**
 
-## Loading and preprocessing the data
+Loading the Data, necessary packages & Convert Date column into Date:
+```{r}
+
+library(dplyr)
+dta <- read.csv("activity.csv")
+dta$date <- as.character(dta$date)
+dta$date <- as.Date(dta$date, "%m/%d/%Y")
+dta <- tbl_df(dta)
+
+```
+
+**What is the total, mean and median number of steps taken per day?**
 
 
+```{r}
 
-## What is mean total number of steps taken per day?
+x <- dta %>% group_by(date) %>% filter(!is.na(steps)) %>%summarize(ttl_per_day = sum(steps), Avg_per_day = mean(steps), median_per_day = median(steps))
+x
+
+hist(x$ttl_per_day)
+
+```
+
+**What is the average daily activity pattern?**
+
+```{r}
+
+y <- dta %>% group_by(interval) %>% filter(!(is.na(steps))) %>% summarize(AVG_per_day = mean(steps))
+y
+
+plot(x = y$interval, y = y$AVG_per_day, type = "l")
+
+```
+
+**Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?**
+
+```{r}
+
+y[which.max(y$AVG_per_day),]
+
+```
+
+**Imputing Missing Values**
+
+Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+
+```{r}
+
+nrow(filter(dta, is.na(steps)))
+
+```
 
 
+Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc. Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
-## What is the average daily activity pattern?
+```{r}
+dta[is.na(dta)] <- mean(dta$steps, na.rm= TRUE)
+dta
+```
 
+Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
+```{r}
 
-## Imputing missing values
+z <- dta %>% group_by(date) %>% filter(!is.na(steps)) %>%summarize(ttl_per_day = sum(steps), Avg_per_day = mean(steps), median_per_day = median(steps))
+z
 
+hist(z$ttl_per_day)
 
+```
 
-## Are there differences in activity patterns between weekdays and weekends?
+Impact of imputation is that the total, mean and median all shift towards the right on the number line. Although, the impact is minimal, since there were only about 2000 missing values.
+
+**Are there differences in activity patterns between weekdays and weekends?**
+
+Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+
+```{r}
+a <- cbind(dta,weekdays(as.Date(dta$date, '%Y-%m-%d')))
+a <- tbl_df(a)
+colnames(a) <- c("steps","date","interval","weekday")
+
+b <- as.factor(a$weekday)
+levels(b) <- list(
+    Weekday = c("Monday", "Tuesday","Wednesday","Thursday","Friday"),
+    Weekend = c("Saturday", "Sunday")
+)
+
+a <- cbind(a,b)
+a <- tbl_df(a)
+
+colnames(a) <- c("steps","date","interval","weekday","flag")
+
+a
+
+```
+
+Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
+
+```{r}
+wd <- tbl_df(filter(a, flag == "Weekday"))
+we <- tbl_df(filter(a, flag == "Weekend"))
+
+d <- wd %>% group_by(interval) %>% summarize(AVG_steps = mean(steps))
+
+e <- we %>% group_by(interval) %>% summarize(AVG_steps = mean(steps))
+
+par(mfrow=c(2,1))
+
+plot(x = d$interval, y = d$AVG_steps, type = "l")
+plot(x = e$interval, y = e$AVG_steps, type = "l")
+```
